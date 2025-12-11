@@ -1,0 +1,12 @@
+services:
+  voice-translator:
+    build: .
+    container_name: discord-voice-translator
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      # Persist server settings (backend, voice preferences)
+      - ./data:/app/data
+    environment:
+      - DATA_DIR=/app/data
