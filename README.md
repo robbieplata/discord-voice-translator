@@ -8,14 +8,14 @@ A real-time voice translation bot for Discord that listens to voice chat, transc
 - **Multiple Translation Backends**: DeepL (recommended), Google Translate, OpenAI
 - **Per-Server Settings**: Each server has its own backend and voice preferences
 - **Persistent Settings**: Settings are saved and restored on restart
-- **Smart VAD**: Voice Activity Detection to filter silence and noise
-- **Hallucination Filtering**: Filters out Whisper hallucinations using confidence metrics
+- **VAD**: Voice Activity Detection to filter silence and noise
+- **Filtering**: Filters out Whisper hallucinations using confidence metrics
 
 ## Quick Start with Docker
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/discord-voice-translator.git
+   git clone https://github.com/robbieplata/discord-voice-translator.git
    cd discord-voice-translator
    ```
 
@@ -70,6 +70,19 @@ A real-time voice translation bot for Discord that listens to voice chat, transc
    python -m src.main
    ```
 
+## Code Style
+
+This repo uses Ruff for formatting + import sorting, and pre-commit to enforce it.
+
+```bash
+pip install -r requirements.txt
+pre-commit install
+
+# one-time run across the repo
+ruff format .
+ruff check --fix .
+```
+
 ## Configuration
 
 Create a `.env` file with the following variables:
@@ -79,34 +92,41 @@ Create a `.env` file with the following variables:
 DISCORD_BOT_TOKEN=your_discord_bot_token
 OPENAI_API_KEY=your_openai_api_key
 
-# Optional (enables DeepL backend)
+# Optional but recommended (enables DeepL backend)
 DEEPL_API_KEY=your_deepl_api_key
 ```
 
 ## Commands
 
-All commands are slash commands only.
+All commands are slash commands under `/translator`.
 
-### Voice Commands
+### Voice
 | Command | Description |
 |---------|-------------|
-| `/tr` or `/join` | Join voice channel and start translating |
-| `/leave` | Leave voice and stop translating |
+| `/translator join` | Join voice channel and start translating |
+| `/translator leave` | Leave voice and stop translating |
+| `/translator status` | Show current voice/translation status |
 
-### Backend Commands
+### Backend
 | Command | Description |
 |---------|-------------|
-| `/backend` | Show current translation backend |
-| `/backend_list` | List available backends |
-| `/backend_set <name>` | Switch backend (deepl, google, openai) |
-| `/backend_usage` | Show usage/quota info |
+| `/translator backend show` | Show current translation backend |
+| `/translator backend list` | List available translation backends |
+| `/translator backend set <name>` | Switch backend (deepl, google, openai) |
+| `/translator backend usage` | Show usage/quota info |
 
-### Voice Settings
+### TTS Voice
 | Command | Description |
 |---------|-------------|
-| `/voice` | Show current TTS voice |
-| `/voice_list` | List available voices |
-| `/voice_set <name>` | Change TTS voice |
+| `/translator voice show` | Show current TTS voice |
+| `/translator voice list` | List available voices |
+| `/translator voice set <name>` | Change TTS voice |
+
+### TTS Mode
+| Command | Description |
+|---------|-------------|
+| `/translator tts show` | Show current TTS playback mode |
+| `/translator tts set <mode>` | Change TTS playback mode (`normal` or `rude`) |
 
 ### Available Voices
 - **Male**: `echo`, `onyx`, `fable`
@@ -115,9 +135,9 @@ All commands are slash commands only.
 ### Utility Commands
 | Command | Description |
 |---------|-------------|
-| `/ping` | Check bot latency |
-| `/health` | Show service status |
-| `/help` | Show all commands |
+| `/translator ping` | Check bot latency |
+| `/translator health` | Show service status |
+| `/translator help` | Show all commands |
 
 ## Discord Bot Setup
 
@@ -142,25 +162,46 @@ Required permissions:
 ## Architecture
 
 ```
-User speaks → VAD → Whisper STT → Translation → OpenAI TTS → Playback
+User speaks → VAD → Whisper STT → (silence debounce) → Translation (Backend) → OpenAI TTS → Playback
 ```
 
-- **VAD**: Silence detection with RMS-based voice activity
+- **VAD**: Adaptive noise floor with RMS-based voice activity detection
 - **STT**: OpenAI Whisper with confidence-based hallucination filtering
+- **Sentence Detection**: Silence-based debounce (finalize after a short silence)
 - **Translation**: Pluggable backends (DeepL, Google, OpenAI)
 - **TTS**: OpenAI TTS with 6 voice options
 
 ## Configuration Notes
 
+### Silence Debounce (Utterance Finalization)
+
+The bot finalizes an utterance after a short period of silence (debounce), then runs STT → translate → TTS.
+
+Settings are split across `src/core/configs/vad.py` (VAD/debounce) and `src/core/configs/openai.py` (AI sentence detection):
+```python
+USE_AI_SENTENCE_DETECTION = False
+SILENCE_DURATION_SEC = 1.2
+MAX_PENDING_UTTERANCES = 10
+```
+
 ### Whisper Prompt
 
-The `WHISPER_PROMPT` in `src/config.py` is important for accurate language detection. It hints to Whisper which languages to expect:
+The `WHISPER_PROMPT` in `src/core/configs/openai.py` can be used to bias transcription toward your expected languages (optional):
 
 ```python
 WHISPER_PROMPT = "This audio contains English or Mandarin Chinese speech."
 ```
 
 Modify this prompt to match your expected languages for better transcription accuracy.
+
+### DeepL Guardrails
+
+DeepL text-translate requests have a maximum request size; this project enforces client-side guardrails to stay under the limit and reduce burst traffic.
+If a translation input is too large, it will be chunked and translated in parts, then stitched back together.
+
+### Playback Interruption ("Barge-in")
+
+If someone starts speaking while the bot is playing TTS, the bot pauses TTS playback and resumes once the channel is quiet again (it keeps listening/receiving audio the whole time). This can be disabled by enabling "rude" TTS mode via `/translator tts set rude` to talk over conversation.
 
 ## License
 

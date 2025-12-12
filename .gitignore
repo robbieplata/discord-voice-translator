@@ -1,3 +1,18 @@
 .env
-__pycache__
-/data/**/*
+
+# Virtual environments
+.venv/
+venv/
+
+# Python caches/artifacts
+__pycache__/
+*.py[cod]
+*.pyd
+
+# Tool caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Local persisted settings
+/data/server_settings.json

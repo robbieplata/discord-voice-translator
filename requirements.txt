@@ -20,10 +20,12 @@ multidict==6.7.0
 numpy>=1.24.0
 openai>=1.0.0
 packaging==25.0
+pre-commit>=3.7.0
 propcache==0.4.1
 pycparser==2.23
 PyNaCl==1.6.1
 python-dotenv==1.2.1
+ruff>=0.12.0
 setuptools==80.9.0
-wheel==0.46.1
+wheel==0.45.1
 yarl==1.22.0
