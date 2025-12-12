@@ -25,7 +25,6 @@ for name in [
     "openai",
     "urllib3",
     "deepl",
-    "googletrans",
     "asyncio",
 ]:
     logging.getLogger(name).setLevel(logging.WARNING)

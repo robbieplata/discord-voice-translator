@@ -5,7 +5,6 @@ from typing import Tuple
 from .base import TranslationBackend
 from .constants import AVAILABLE_BACKENDS
 from .deepl import DeepLBackend
-from .google import GoogleTranslateBackend
 from .openai import OpenAIBackend
 
 logger = logging.getLogger("voicebot")
@@ -25,9 +24,6 @@ def create_backend(name: str) -> TranslationBackend:
         if not api_key:
             raise RuntimeError("DEEPL_API_KEY not set")
         return DeepLBackend(api_key)
-
-    if name == "google":
-        return GoogleTranslateBackend()
 
     if name == "openai":
         api_key = os.getenv("OPENAI_API_KEY")
@@ -51,12 +47,4 @@ def create_default_backend() -> Tuple[TranslationBackend, str]:
         except Exception as exc:
             logger.warning("[translate] DeepL init failed: %s", exc, exc_info=True)
 
-    # Fall back to Google Translate
-    try:
-        return GoogleTranslateBackend(), "google"
-    except Exception as exc:
-        logger.warning("[translate] Google init failed: %s", exc, exc_info=True)
-
-    raise RuntimeError(
-        "No translation backend available. Set DEEPL_API_KEY or install googletrans."
-    )
+    raise RuntimeError("No translation backend available. Set DEEPL_API_KEY.")

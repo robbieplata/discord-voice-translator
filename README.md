@@ -5,7 +5,7 @@ A real-time voice translation bot for Discord that listens to voice chat, transc
 ## Features
 
 - **Real-time Voice Translation**: Automatic language detection and translation
-- **Multiple Translation Backends**: DeepL (recommended), Google Translate, OpenAI
+- **Multiple Translation Backends**: DeepL (recommended), OpenAI
 - **Per-Server Settings**: Each server has its own backend and voice preferences
 - **Persistent Settings**: Settings are saved and restored on restart
 - **VAD**: Voice Activity Detection to filter silence and noise
@@ -112,7 +112,7 @@ All commands are slash commands under `/translator`.
 |---------|-------------|
 | `/translator backend show` | Show current translation backend |
 | `/translator backend list` | List available translation backends |
-| `/translator backend set <name>` | Switch backend (deepl, google, openai) |
+| `/translator backend set <name>` | Switch backend (deepl, openai) |
 | `/translator backend usage` | Show usage/quota info |
 
 ### TTS Voice
@@ -168,7 +168,7 @@ User speaks → VAD → Whisper STT → (silence debounce) → Translation (Back
 - **VAD**: Adaptive noise floor with RMS-based voice activity detection
 - **STT**: OpenAI Whisper with confidence-based hallucination filtering
 - **Sentence Detection**: Silence-based debounce (finalize after a short silence)
-- **Translation**: Pluggable backends (DeepL, Google, OpenAI)
+- **Translation**: Pluggable backends (DeepL, OpenAI)
 - **TTS**: OpenAI TTS with 6 voice options
 
 ## Configuration Notes

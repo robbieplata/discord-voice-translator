@@ -45,8 +45,6 @@ from .providers import (  # noqa: F401
     DEEPL_MAX_REQUESTS_PER_SEC,
     DEEPL_USAGE_LOG_EVERY_SEC,
     DEEPL_USAGE_WARN_PERCENT,
-    GOOGLE_MAX_INPUT_CHARS,
-    GOOGLE_MAX_REQUESTS_PER_SEC,
 )
 from .vad import (  # noqa: F401
     MAX_UTTERANCE_SEC,
